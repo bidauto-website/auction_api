@@ -1,25 +1,9 @@
 from enum import Enum
 
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from dotenv import load_dotenv
-
 load_dotenv()
-
-class Permissions(str, Enum):
-    USERS_READ_ALL = "auth.user.all:read"
-    USERS_WRITE_ALL = "auth.user.all:write"
-
-    ROLES_READ_ALL = "auth.role.all:read"
-    ROLES_WRITE_ALL = "auth.role.all:write"
-    ROLES_DELETE_ALL = "auth.role.all:delete"
-
-    PERMISSIONS_READ_ALL = "auth.permission.all:read"
-    PERMISSIONS_WRITE_ALL = "auth.permission.all:write"
-    PERMISSIONS_DELETE_ALL = "auth.permission.all:delete"
-
-    USERS_READ_OWN = "auth.user.own:read"
-    USERS_WRITE_OWN = "auth.user.own:write"
 
 
 class Environment(str, Enum):
@@ -27,31 +11,8 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 class Settings(BaseSettings):
-    # Database
-
-    DB_HOST: str = "localhost"
-    DB_PORT: str = "5432"
-    DB_NAME: str = "test_db"
-    DB_USER: str = "postgres"
-    DB_PASS: str = "testpass"
-
-
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379"
-
-    # AWS
-    AWS_REGION: str = "eu-north-1"
-    AWS_ACCESS_KEY_ID: str = 'test-key'
-    AWS_SECRET_ACCESS_KEY: str = 'test-key'
-    AWS_KMS_KEY_ARN: str = 'arn:aws:kms:eu-north-1:669409472579:key/a0e62c95-68a4-4cb2-814f-7b02b654a878'
-
-    # Security
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
-    # Application
-    APP_NAME: str = "auth-service"
-    AUDIENCE: str = "web-api"
+    #Application
+    APP_NAME: str = "auction-api-service"
     DEBUG: bool = True
     ROOT_PATH: str = ''
     ENVIRONMENT: Environment = Environment.DEVELOPMENT
@@ -60,19 +21,22 @@ class Settings(BaseSettings):
     def enable_docs(self) -> bool:
         return self.ENVIRONMENT in [Environment.DEVELOPMENT]
 
+    # Database
+    DB_HOST: str = "localhost"
+    DB_PORT: str = "5432"
+    DB_NAME: str = "test_db"
+    DB_USER: str = "postgres"
+    DB_PASS: str = "testpass"
 
-    # RabbitMQ
-    RABBITMQ_URL: str = "amqp://guest:guest@localhost/"
-    RABBITMQ_EXCHANGE_NAME: str = 'events'
+    # gRPC
+    GRPC_SERVER_PORT: str = "50051"
 
-    # rpc
-    GRPC_SERVER_PORT: int = 50054
+    #Redis
+    REDIS_URL: str = "redis://localhost:6379"
 
-    RPC_PAYMENT_URL: str = "localhost:50053"
+    #Auction API
+    AUCTION_API_KEY: str
 
-
-    model_config = SettingsConfigDict(env_file=".env")
-
-
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()

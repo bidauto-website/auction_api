@@ -4,28 +4,16 @@ import os
 import grpc
 import signal
 import sys
-
-
 from grpc_health.v1 import health_pb2_grpc, health_pb2
 from grpc_reflection.v1alpha import reflection
 
-# Ensure generated gRPC modules under services/rpc_server_client/gen/python can be resolved.
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(__file__),
-        'services',
-        'rpc_server_client',
-        'gen',
-        'python',
-    ),
-)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'rpc_server', 'gen', 'python'))
 
+from auction.v1 import lot_pb2, lot_pb2_grpc
 from config import settings, Environment
 from core.logger import logger
-from services.rpc_server_client.health import HealthCheckServicer
-from services.rpc_server_client.auth_rcp import AuthRcp
-from auth.v1 import auth_pb2_grpc, auth_pb2
+from rpc_server.health import HealthCheckServicer
+from rpc_server.lot_rpc import LotRpc
 
 class GracefulServer:
     def __init__(self):
@@ -40,13 +28,13 @@ class GracefulServer:
 
         self.server.add_insecure_port(listen_addr)
 
-        auth_pb2_grpc.add_AuthServiceServicer_to_server(AuthRcp(), self.server)
+        lot_pb2_grpc.add_LotServiceServicer_to_server(LotRpc(), self.server)
         health_pb2_grpc.add_HealthServicer_to_server(HealthCheckServicer(), self.server)
 
         if settings.ENVIRONMENT == Environment.DEVELOPMENT:
             try:
                 service_names = [
-                    auth_pb2.DESCRIPTOR.services_by_name['AuthService'].full_name,
+                    lot_pb2.DESCRIPTOR.services_by_name['LotService'].full_name,
                     health_pb2.DESCRIPTOR.services_by_name['Health'].full_name,
                     reflection.SERVICE_NAME,
                 ]

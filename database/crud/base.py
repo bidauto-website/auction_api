@@ -1,10 +1,10 @@
 from typing import TypeVar, Generic, Type, Optional, Sequence
 
-from rfc9457 import NotFoundProblem
-from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from pydantic import BaseModel
+
+from database.db.session import AsyncSessionLocal
 
 ModelType = TypeVar("ModelType")
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -12,25 +12,37 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: Type[ModelType], session: AsyncSession):
+    def __init__(self, model: Type[ModelType], session: AsyncSession = None):
         self.model = model
         self.session = session
 
     async def get(self, obj_id: int) -> Optional[ModelType]:
         return await self.session.get(self.model, obj_id)
 
-    async def get_with_not_found_exception(self, obj_id: int, obj_name: str) -> ModelType:
-        obj = await self.get(obj_id)
-        if not obj:
-            raise NotFoundProblem(detail=f"Object '{obj_name}' not found")
-        return obj
-
-    async def get_all(self, get_stmt: bool = False) -> Sequence[ModelType] | Select[ModelType]:
-        query = select(self.model)
-        if get_stmt:
-            return query
-        result = await self.session.execute(query)
+    async def get_all_sorted(self, sort_by: str, sort_order: str = "asc" ) -> Sequence[ModelType]:
+        sort_order = sort_order.lower()
+        if sort_order not in ("asc", "desc"):
+            raise ValueError("sort_order must be either 'asc' or 'desc'")
+        sort_field = getattr(self.model, sort_by, None)
+        if sort_field is None:
+            raise AttributeError(f"Model {self.model.__name__} has no field '{sort_by}'")
+        result = await self.session.execute(
+            select(self.model).order_by(sort_field.desc() if sort_order == "desc" else sort_field.asc())
+        )
         return result.scalars().all()
+
+    async def get_all(self) -> Sequence[ModelType]:
+        result = await self.session.execute(select(self.model))
+        return result.scalars().all()
+
+    async def get_by_field(self, field_name: str, value):
+        field = getattr(self.model, field_name, None)
+        if field is None:
+            raise AttributeError(f"Model {self.model.__name__} has no field '{field_name}'")
+        result = await self.session.execute(
+            select(self.model).where(field == value).limit(1)
+        )
+        return result.scalar_one_or_none()
 
     async def create(self, data: CreateSchemaType, flush: bool = False) -> ModelType:
         obj = self.model(**data.model_dump())

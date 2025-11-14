@@ -8,11 +8,14 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import pandas as pd
 from sqlalchemy import Engine, text
-from database.db.session import engine
+
 from core.logger import logger
+from database.db.session import engine
+
 
 
 def _coerce_bool_series(series: pd.Series) -> pd.Series:
+    """Coerce a pandas Series with values like 0/1, "0"/"1", "true"/"false" to booleans."""
     true_vals = {"1", "true", "t", "yes", "y"}
     false_vals = {"0", "false", "f", "no", "n"}
 
@@ -26,6 +29,7 @@ def _coerce_bool_series(series: pd.Series) -> pd.Series:
             return True
         if s in false_vals:
             return False
+        # Fallback: non-empty/non-zero truthiness
         try:
             return bool(int(s))
         except Exception:
@@ -34,82 +38,47 @@ def _coerce_bool_series(series: pd.Series) -> pd.Series:
     return series.map(to_bool)
 
 
-def reset_all_sequences(db_engine: Engine):
-    if db_engine.dialect.name != "postgresql":
-        logger.info("Skipping sequence reset for non-PostgreSQL dialect")
-        return
-    sql = """
-DO $$
-DECLARE
-  r record;
-  max_id bigint;
-  seq_reg regclass;
-  seq_schema text;
-  seq_name text;
-  startv bigint;
-BEGIN
-  FOR r IN
-    SELECT
-      n.nspname AS sch,
-      c.relname AS tbl,
-      a.attname AS col,
-      pg_get_serial_sequence(format('%I.%I', n.nspname, c.relname), a.attname) AS seq
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
-    JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
-    WHERE c.relkind IN ('r','p')
-      AND n.nspname NOT IN ('pg_catalog','information_schema','pg_toast')
-  LOOP
-    IF r.seq IS NOT NULL THEN
-      seq_reg := r.seq::regclass;
-      SELECT ns.nspname, cl.relname
-      INTO seq_schema, seq_name
-      FROM pg_class cl
-      JOIN pg_namespace ns ON ns.oid = cl.relnamespace
-      WHERE cl.oid = seq_reg;
-
-      SELECT start_value
-      INTO startv
-      FROM pg_sequences
-      WHERE schemaname = seq_schema AND sequencename = seq_name;
-
-      EXECUTE format('SELECT MAX(%I) FROM %I.%I', r.col, r.sch, r.tbl) INTO max_id;
-
-      IF max_id IS NULL THEN
-        EXECUTE format('SELECT setval(%L, %s, false)', r.seq, startv);
-      ELSE
-        EXECUTE format('SELECT setval(%L, %s, true)', r.seq, max_id);
-      END IF;
-    END IF;
-  END LOOP;
-END $$;
-"""
-    with db_engine.begin() as conn:
-        conn.execute(text(sql))
-
-
-def seed_db(db_engine: Engine):
+async def seed_vehicle_data(engine: Engine):
     src_dir = CURRENT_FILE.parent / 'src'
 
+    # Map CSV paths
     tables = {
-        'permission': src_dir / 'permission.csv',
-        'role': src_dir / 'role.csv',
-        'role_permissions': src_dir / 'role_permissions.csv',
+        'damage': src_dir / 'damage_types.csv',
+        'document': src_dir / 'document.csv',
+        'drive': src_dir / 'drive.csv',
+        'make': src_dir / 'makes.csv',
+        'model': src_dir / 'models.csv',
+        'status': src_dir / 'status.csv',
+        'transmission': src_dir / 'transmissions.csv',
+        'vehicle_type': src_dir / 'vehicle_type.csv',
     }
 
+    # Deletion order: children first, then parents (to satisfy FKs)
     delete_order = [
-        'role_permissions',
-        'role',
-        'permission',
+        'model',
+        'make',
+        'vehicle_type',
+        'transmission',
+        'drive',
+        'status',
+        'document',
+        'damage',
     ]
 
+    # Insertion order: parents first, then children
     insert_order = [
-        'permission',
-        'role',
-        'role_permissions'
+        'vehicle_type',
+        'make',
+        'damage',
+        'document',
+        'status',
+        'drive',
+        'transmission',
+        'model',
     ]
 
-    with db_engine.begin() as conn:
+    # Phase 1: delete existing data without dropping tables (preserve schema & FKs)
+    with engine.begin() as conn:
         for table in delete_order:
             logger.info(f'Clearing table {table}')
             try:
@@ -117,20 +86,22 @@ def seed_db(db_engine: Engine):
             except Exception as e:
                 logger.warning(f'Failed to delete from {table}: {e}')
 
+    # Phase 2: insert data
     for table in insert_order:
         path = tables[table]
         logger.info(f'Seeding table {table} from {path}')
         df = pd.read_csv(path)
-        if df.empty:
-            logger.warning(f'Skipping {table}: CSV is empty')
-            continue
-        if table == 'role' and 'is_default' in df.columns:
-            df['is_default'] = _coerce_bool_series(df['is_default'])
-        df.to_sql(table, db_engine, if_exists='append', index=False)
 
-    logger.info('Resetting all sequences to match current max ids')
-    reset_all_sequences(db_engine)
+        # Handle boolean columns if they exist
+        bool_columns = ['is_active', 'is_default', 'is_enabled']
+        for col in bool_columns:
+            if col in df.columns:
+                df[col] = _coerce_bool_series(df[col])
+
+        df.to_sql(table, engine, if_exists='append', index=False)
 
 
 if __name__ == '__main__':
-    seed_db(engine)
+    import asyncio
+
+    asyncio.run(seed_vehicle_data(engine))
