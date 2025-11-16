@@ -7,9 +7,10 @@ import sys
 from grpc_health.v1 import health_pb2_grpc, health_pb2
 from grpc_reflection.v1alpha import reflection
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'rpc_server', 'gen', 'python'))
 
-from auction.v1 import lot_pb2, lot_pb2_grpc
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'rpc_server', 'gen', 'python'))
+from rpc_server.gen.python.auction.v1 import lot_pb2_grpc, lot_pb2
 from config import settings, Environment
 from core.logger import logger
 from rpc_server.health import HealthCheckServicer
@@ -35,7 +36,6 @@ class GracefulServer:
             try:
                 service_names = [
                     lot_pb2.DESCRIPTOR.services_by_name['LotService'].full_name,
-                    health_pb2.DESCRIPTOR.services_by_name['Health'].full_name,
                     reflection.SERVICE_NAME,
                 ]
                 reflection.enable_server_reflection(service_names, self.server)

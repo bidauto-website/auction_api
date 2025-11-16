@@ -1,8 +1,6 @@
-from typing import Union
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auction_api.types.search import CurrentSearchParams, HistorySearchParams
+from auction_api.types.search import CommonSearchParams, CurrentSearchParams, HistorySearchParams
 from core.logger import logger
 from database.crud.car_make import MakeService
 from database.crud.car_model import ModelService
@@ -16,10 +14,8 @@ from database.crud.vehicle_type import VehicleTypeService
 
 
 
-async def transform_slugs(
-    data: Union[HistorySearchParams, CurrentSearchParams],
-    db: AsyncSession
-) -> Union[HistorySearchParams, CurrentSearchParams]:
+async def transform_slugs(data: HistorySearchParams | CurrentSearchParams,
+                          db: AsyncSession) -> HistorySearchParams | CurrentSearchParams:
     field_service_map = {
         'make': MakeService,
         'model': ModelService,
@@ -28,32 +24,23 @@ async def transform_slugs(
         'status': StatusService,
         'drive': DriveService,
         'damage_pr': DamageService,
-        'document': DocumentService,
+        'document': DocumentService
     }
 
     data_dict = data.model_dump()
 
     for field_name, field_value in data_dict.items():
-        service_class = field_service_map.get(field_name)
-        if not service_class or field_value in (None, '', [], ()):
-            continue
+        if field_name in field_service_map and field_value:
+            service_class = field_service_map[field_name]
+            service = service_class(db)
 
-        service = service_class(db)
-        is_list = isinstance(field_value, (list, tuple, set))
-        values = list(field_value) if is_list else [field_value]
-
-        transformed = []
-        for value in values:
             try:
-                obj = await service.get_by_field('slug', value)
-                transformed.append(obj.name if obj else value)
+                obj = await service.get_by_field('slug', field_value)
+                setattr(data, field_name, obj.name)
             except Exception as e:
-                logger.exception(f"Error while transforming slugs for {field_name}", exception=e.__str__())
-                transformed.append(value)
+                logger.warning(f"Error while transforming slugs for {field_name}", exception=e.__str__())
+                pass
 
-        setattr(data, field_name, transformed if is_list else transformed[0])
-
-    logger.debug(f"Transformed slugs: {data}")
     return data
 
 

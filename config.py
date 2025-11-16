@@ -29,14 +29,15 @@ class Settings(BaseSettings):
     DB_PASS: str = "testpass"
 
     # gRPC
-    GRPC_SERVER_PORT: str = "50051"
+    GRPC_SERVER_PORT: str = "50052"
 
     #Redis
-    REDIS_URL: str = "redis://localhost:6379"
+    REDIS_URL: str = 'redis://localhost:6379/0'
 
     #Auction API
     AUCTION_API_KEY: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file='.env')
 
 settings = Settings()
+

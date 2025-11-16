@@ -1,10 +1,9 @@
 from abc import abstractmethod, ABC
-from typing import List, TYPE_CHECKING, Type, TypeVar
+from typing import List, TYPE_CHECKING
 
 from pydantic import BaseModel
 from rfc9457 import BadRequestProblem, NotFoundProblem
 
-from auction_api.types.common import SiteEnum
 from core.logger import logger, log_async_execution_time
 from .types import BaseClientIn
 import httpx
@@ -13,7 +12,7 @@ if TYPE_CHECKING:
     from auction_api.api import EndpointSchema
 
 
-T = TypeVar("T", bound=BaseModel)
+
 
 class BaseClient(ABC):
     def __init__(self, data: BaseClientIn):
@@ -41,18 +40,10 @@ class BaseClient(ABC):
             raise BadRequestProblem(detail='Request to API Failed') from e
 
     @log_async_execution_time('Request to external API')
-    async def request_with_schema(self, schema: "EndpointSchema", data: BaseModel, **kwargs) -> Type[T]:
+    async def request_with_schema(self, schema: "EndpointSchema", data: BaseModel, **kwargs) -> BaseModel | List[BaseModel]:
         url = self._build_url(schema.endpoint.format(**kwargs))
 
         payload = data.model_dump(exclude_none=True, mode='json')
-
-
-        site_val = payload.get('site')
-        if site_val is not None:
-            normalized = str(site_val).lower()
-            if normalized in {SiteEnum.ALL_NUM, SiteEnum.ALL}:
-                payload['site'] = [1, 2]
-
         logger.debug(f"Request payload: {payload}, url: {url}, data: {data}")
 
         if schema.method == "GET":
@@ -79,7 +70,7 @@ class BaseClient(ABC):
         return self.process_response(response_data, schema)
 
     @abstractmethod
-    def process_response(self, response_data: dict | list, schema: "EndpointSchema") -> Type[T]:
+    def process_response(self, response_data: dict | list, schema: "EndpointSchema") -> BaseModel | List[BaseModel]:
         ...
 
 
