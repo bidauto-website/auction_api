@@ -2,10 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from auction.v1 import lot_pb2 as auction_dot_v1_dot_lot__pb2
+from carfax.v1 import carfax_pb2 as carfax_dot_v1_dot_carfax__pb2
 
 
-class LotServiceStub(object):
+class CarfaxServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -14,91 +14,91 @@ class LotServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetLot = channel.unary_unary(
-                '/auction.v1.LotService/GetLot',
-                request_serializer=auction_dot_v1_dot_lot__pb2.GetLotRequest.SerializeToString,
-                response_deserializer=auction_dot_v1_dot_lot__pb2.GetLotResponse.FromString,
+        self.BuyCarfax = channel.unary_unary(
+                '/carfax.v1.CarfaxService/BuyCarfax',
+                request_serializer=carfax_dot_v1_dot_carfax__pb2.BuyCarfaxRequest.SerializeToString,
+                response_deserializer=carfax_dot_v1_dot_carfax__pb2.BuyCarfaxResponse.FromString,
                 _registered_method=True)
-        self.GetSaleHistory = channel.unary_unary(
-                '/auction.v1.LotService/GetSaleHistory',
-                request_serializer=auction_dot_v1_dot_lot__pb2.GetSaleHistoryRequest.SerializeToString,
-                response_deserializer=auction_dot_v1_dot_lot__pb2.GetSaleHistoryResponse.FromString,
+        self.GetAllCarfaxesForUser = channel.unary_unary(
+                '/carfax.v1.CarfaxService/GetAllCarfaxesForUser',
+                request_serializer=carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserRequest.SerializeToString,
+                response_deserializer=carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserResponse.FromString,
                 _registered_method=True)
-        self.GetLotByVinOrLot = channel.unary_unary(
-                '/auction.v1.LotService/GetLotByVinOrLot',
-                request_serializer=auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotRequest.SerializeToString,
-                response_deserializer=auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotResponse.FromString,
+        self.GetCarfaxByVin = channel.unary_unary(
+                '/carfax.v1.CarfaxService/GetCarfaxByVin',
+                request_serializer=carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinRequest.SerializeToString,
+                response_deserializer=carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinResponse.FromString,
                 _registered_method=True)
-        self.GetCurrentBid = channel.unary_unary(
-                '/auction.v1.LotService/GetCurrentBid',
-                request_serializer=auction_dot_v1_dot_lot__pb2.GetCurrentBidRequest.SerializeToString,
-                response_deserializer=auction_dot_v1_dot_lot__pb2.GetCurrentBidResponse.FromString,
+        self.IsVinExists = channel.unary_unary(
+                '/carfax.v1.CarfaxService/IsVinExists',
+                request_serializer=carfax_dot_v1_dot_carfax__pb2.IsVinExistsRequest.SerializeToString,
+                response_deserializer=carfax_dot_v1_dot_carfax__pb2.IsVinExistsResponse.FromString,
                 _registered_method=True)
 
 
-class LotServiceServicer(object):
+class CarfaxServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def GetLot(self, request, context):
+    def BuyCarfax(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetSaleHistory(self, request, context):
+    def GetAllCarfaxesForUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetLotByVinOrLot(self, request, context):
+    def GetCarfaxByVin(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetCurrentBid(self, request, context):
+    def IsVinExists(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_LotServiceServicer_to_server(servicer, server):
+def add_CarfaxServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetLot': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLot,
-                    request_deserializer=auction_dot_v1_dot_lot__pb2.GetLotRequest.FromString,
-                    response_serializer=auction_dot_v1_dot_lot__pb2.GetLotResponse.SerializeToString,
+            'BuyCarfax': grpc.unary_unary_rpc_method_handler(
+                    servicer.BuyCarfax,
+                    request_deserializer=carfax_dot_v1_dot_carfax__pb2.BuyCarfaxRequest.FromString,
+                    response_serializer=carfax_dot_v1_dot_carfax__pb2.BuyCarfaxResponse.SerializeToString,
             ),
-            'GetSaleHistory': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSaleHistory,
-                    request_deserializer=auction_dot_v1_dot_lot__pb2.GetSaleHistoryRequest.FromString,
-                    response_serializer=auction_dot_v1_dot_lot__pb2.GetSaleHistoryResponse.SerializeToString,
+            'GetAllCarfaxesForUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAllCarfaxesForUser,
+                    request_deserializer=carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserRequest.FromString,
+                    response_serializer=carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserResponse.SerializeToString,
             ),
-            'GetLotByVinOrLot': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLotByVinOrLot,
-                    request_deserializer=auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotRequest.FromString,
-                    response_serializer=auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotResponse.SerializeToString,
+            'GetCarfaxByVin': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCarfaxByVin,
+                    request_deserializer=carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinRequest.FromString,
+                    response_serializer=carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinResponse.SerializeToString,
             ),
-            'GetCurrentBid': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetCurrentBid,
-                    request_deserializer=auction_dot_v1_dot_lot__pb2.GetCurrentBidRequest.FromString,
-                    response_serializer=auction_dot_v1_dot_lot__pb2.GetCurrentBidResponse.SerializeToString,
+            'IsVinExists': grpc.unary_unary_rpc_method_handler(
+                    servicer.IsVinExists,
+                    request_deserializer=carfax_dot_v1_dot_carfax__pb2.IsVinExistsRequest.FromString,
+                    response_serializer=carfax_dot_v1_dot_carfax__pb2.IsVinExistsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'auction.v1.LotService', rpc_method_handlers)
+            'carfax.v1.CarfaxService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('auction.v1.LotService', rpc_method_handlers)
+    server.add_registered_method_handlers('carfax.v1.CarfaxService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class LotService(object):
+class CarfaxService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def GetLot(request,
+    def BuyCarfax(request,
             target,
             options=(),
             channel_credentials=None,
@@ -111,9 +111,9 @@ class LotService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/auction.v1.LotService/GetLot',
-            auction_dot_v1_dot_lot__pb2.GetLotRequest.SerializeToString,
-            auction_dot_v1_dot_lot__pb2.GetLotResponse.FromString,
+            '/carfax.v1.CarfaxService/BuyCarfax',
+            carfax_dot_v1_dot_carfax__pb2.BuyCarfaxRequest.SerializeToString,
+            carfax_dot_v1_dot_carfax__pb2.BuyCarfaxResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -125,7 +125,7 @@ class LotService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetSaleHistory(request,
+    def GetAllCarfaxesForUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -138,9 +138,9 @@ class LotService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/auction.v1.LotService/GetSaleHistory',
-            auction_dot_v1_dot_lot__pb2.GetSaleHistoryRequest.SerializeToString,
-            auction_dot_v1_dot_lot__pb2.GetSaleHistoryResponse.FromString,
+            '/carfax.v1.CarfaxService/GetAllCarfaxesForUser',
+            carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserRequest.SerializeToString,
+            carfax_dot_v1_dot_carfax__pb2.GetAllCarfaxesForUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -152,7 +152,7 @@ class LotService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetLotByVinOrLot(request,
+    def GetCarfaxByVin(request,
             target,
             options=(),
             channel_credentials=None,
@@ -165,9 +165,9 @@ class LotService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/auction.v1.LotService/GetLotByVinOrLot',
-            auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotRequest.SerializeToString,
-            auction_dot_v1_dot_lot__pb2.GetLotByVinOrLotResponse.FromString,
+            '/carfax.v1.CarfaxService/GetCarfaxByVin',
+            carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinRequest.SerializeToString,
+            carfax_dot_v1_dot_carfax__pb2.GetCarfaxByVinResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -179,7 +179,7 @@ class LotService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetCurrentBid(request,
+    def IsVinExists(request,
             target,
             options=(),
             channel_credentials=None,
@@ -192,9 +192,9 @@ class LotService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/auction.v1.LotService/GetCurrentBid',
-            auction_dot_v1_dot_lot__pb2.GetCurrentBidRequest.SerializeToString,
-            auction_dot_v1_dot_lot__pb2.GetCurrentBidResponse.FromString,
+            '/carfax.v1.CarfaxService/IsVinExists',
+            carfax_dot_v1_dot_carfax__pb2.IsVinExistsRequest.SerializeToString,
+            carfax_dot_v1_dot_carfax__pb2.IsVinExistsResponse.FromString,
             options,
             channel_credentials,
             insecure,
