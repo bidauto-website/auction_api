@@ -1,6 +1,5 @@
 import traceback
-from datetime import datetime
-from typing import Optional, Any, Dict, Callable, TypeVar, Generic
+from typing import Optional, Any, Dict, Callable, TypeVar
 import json
 from functools import wraps
 
@@ -8,7 +7,7 @@ import grpc
 import redis.asyncio as redis
 from rfc9457 import NotFoundProblem, BadRequestProblem
 
-from auction_api.api import AuctionApiClient
+from auction_api.api import AuctionApiClient, EndpointSchema
 from auction_api.types.search import SiteEnum, CurrentSearchParams, SellerTypeEnum
 from auction_api.utils import get_lot_vin_or_lot_id
 from config import settings
@@ -201,7 +200,7 @@ class LotRpc(BaseRpcService, lot_pb2_grpc.LotServiceServicer):
     async def _execute_with_cache(
             self,
             cache_key: str,
-            api_method: str,
+            api_method: EndpointSchema,
             api_params: Any,
             ttl: int,
             transform_func: Optional[Callable] = None
