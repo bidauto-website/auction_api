@@ -1,10 +1,9 @@
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from auction_api.types.common import DefinedSiteEnum
-from request_schemas.lot import SiteIn
 
 
-class VinOrLotIn(SiteIn):
+class VinOrLotIn(BaseModel):
     site: DefinedSiteEnum | None = Field(None, description="Auction of vehicle")
     vin_or_lot: str
 

@@ -1,5 +1,5 @@
 [project]
-name = "bidauto-external-api-app"
+name = "vinas-external-api-app"
 version = "0.1.0"
 description = ""
 authors = [
@@ -27,7 +27,6 @@ dependencies = [
     "asyncpg (>=0.30.0,<0.31.0)",
     "pandas (>=2.3.2,<3.0.0)",
     "python-slugify (>=8.0.4,<9.0.0)",
-    "greenlet (>=3.2.4,<4.0.0)",
 ]
 
 [tool.poetry]

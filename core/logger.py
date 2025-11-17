@@ -6,8 +6,11 @@ import json
 from contextlib import asynccontextmanager
 from functools import wraps
 from typing import Optional, Dict, Any
+from collections.abc import Mapping
 
-from config import settings, Environment
+from pydantic import ValidationError
+
+from config import Environment, settings
 
 
 class ConsoleLogger:
@@ -20,6 +23,40 @@ class ConsoleLogger:
         self.service_name = service_name
         self.environment = environment
         self.include_extra = include_extra
+
+    def _make_json_safe(self, value):
+        if value is None:
+            return None
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, datetime):
+            return value.isoformat()
+        if isinstance(value, Mapping):
+            return {str(key): self._make_json_safe(val) for key, val in value.items()}
+        if isinstance(value, (list, tuple, set)):
+            return [self._make_json_safe(item) for item in value]
+        if isinstance(value, ValidationError):
+            return {
+                "type": value.__class__.__name__,
+                "errors": value.errors(include_context=True),
+            }
+        if isinstance(value, Exception):
+            return str(value)
+        model_dump = getattr(value, "model_dump", None)
+        if callable(model_dump):
+            try:
+                return self._make_json_safe(model_dump())
+            except Exception:
+                return str(value)
+        dict_method = getattr(value, "dict", None)
+        if callable(dict_method):
+            try:
+                return self._make_json_safe(dict_method())
+            except Exception:
+                return str(value)
+        if hasattr(value, "__dict__"):
+            return self._make_json_safe(vars(value))
+        return str(value)
 
     def sink(self, message) -> None:
         record = message.record
@@ -57,9 +94,10 @@ class ConsoleLogger:
         if self.include_extra:
             extra = record.get("extra")
             if extra:
-                doc["extra"] = extra
+                doc["extra"] = self._make_json_safe(extra)
 
-        print(json.dumps(doc, ensure_ascii=False), flush=True)
+        safe_doc = self._make_json_safe(doc)
+        print(json.dumps(safe_doc, ensure_ascii=False), flush=True)
 
 
 @asynccontextmanager

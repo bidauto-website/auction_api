@@ -1,12 +1,10 @@
-from datetime import datetime, UTC
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
-from requests.compat import has_simplejson
 
 from auction_api.utils import AuctionApiUtils
-from core.logger import logger
 
 
 class FormGetType(str, Enum):
@@ -74,35 +72,26 @@ class BasicLot(BaseModel):
     @model_validator(mode='after')
     @classmethod
     def validate_together(cls, data):
-        try:
-            auction_date = data.auction_date
-            if auction_date:
-                now = datetime.now(UTC)
-                if auction_date > now:
-                    data.form_get_type = FormGetType.ACTIVE
-                else:
-                    data.form_get_type = FormGetType.HISTORY
-            else:
-                if hasattr(data, 'sale_date'):
-                    data.form_get_type = FormGetType.HISTORY
-        except Exception as e:
-            logger.exception(f'Failed to parse auction_date: {e}')
+        if hasattr(data, 'sale_date'):
             data.form_get_type = FormGetType.HISTORY
+        else:
+            data.form_get_type = FormGetType.ACTIVE
+
         return data
 
 
 class SaleHistoryItem(BaseModel):
-    lot_id: int | None = None
-    site: int | None = None
-    base_site: str | None = None
-    vin: str | None = None
-    sale_status: str | None = None
-    sale_date: datetime | None = None
-    purchase_price: int | None = None
-    is_buynow: bool | None = None
-    buyer_state: str | None = None
-    buyer_country: str | None = None
-    vehicle_type: str | None = None
+    lot_id: Optional[int] = None
+    site: Optional[int] = None
+    base_site: Optional[str] = None
+    vin: Optional[str] = None
+    sale_status: Optional[str] = None
+    sale_date: Optional[datetime] = None
+    purchase_price: Optional[int] = None
+    is_buynow: Optional[bool] = None
+    buyer_state: Optional[str] = None
+    buyer_country: Optional[str] = None
+    vehicle_type: Optional[str] = None
 
     @model_validator(mode="before")
     @classmethod
