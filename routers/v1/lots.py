@@ -1,3 +1,5 @@
+from datetime import datetime, UTC
+
 from fastapi import APIRouter, Query, Depends
 from fastapi_cache import default_key_builder
 from fastapi_cache.decorator import cache
